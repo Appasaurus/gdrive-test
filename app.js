@@ -1,6 +1,12 @@
-var restify = require('restify'),
+var express = restify = require('restify'),
 s = require('save')('element'),
 io = require('socket.io');
+
+var server = restify.createServer({
+    name : 'realtime-api-test'
+});
+
+sock = io.listen(server);
 
 // Insert into DB and push updated metadata to active clients
 function docPush(req, res, next) {
@@ -16,6 +22,8 @@ function docPush(req, res, next) {
 	if (error) return next(new restify.InvalidArgumentError(JSON.stringify(error.errors)))
 	res.send(201, item)
     });
+
+    sock.sockets.broadcast.emit('newData', {hello: 'another'});
     
     return next();
 }
@@ -37,16 +45,24 @@ head><body><h1>Hello, World!</h1></body></html>');
     return next();
 }
 
-var server = restify.createServer({
-    name: 'Realtime-API-Test',
-});
-
-socket = io.listen(server);
-
-server.get('/docPush/:doc', docPush);
-server.get('/allDocs/', allDocs);
-server.get('/', homePage);
+// client page
+function client(req, res, next) {
+    res.write('<html><head><script type="text/javascript" src="/socket.io/socket.io.js"></script><script type="text/javascript">var socket = io.connect("http://localhost:8084"); socket.on("newData", function(data) { console.log(data); } );</script></head></html>');
+    res.end();
+    return next();
+}
 
 server.listen(8084, function() {
     console.log("%s listening at URL %s", server.name, server.url);
 });
+
+server.get('/docPush/:doc', docPush);
+server.get('/allDocs/', allDocs);
+server.get('/client', client);
+server.get('/', homePage);
+
+sock.sockets.on('connection', function(socket) {
+    socket.emit('newData', {hello: 'world'});
+    console.log('pushed new data to client');
+});
+
