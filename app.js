@@ -2,7 +2,7 @@ var restify = require('restify'),
 s = require('save')('element'),
 io = require('socket.io');
 
-// Insert into DB and push update to active clients
+// Insert into DB and push updated metadata to active clients
 function docPush(req, res, next) {
     res.send('Hello there, ' + req.params.doc + '!');
     
@@ -20,7 +20,7 @@ function docPush(req, res, next) {
     return next();
 }
 
-// Get list of every changed doc from db
+// Get list of every changed doc & associated metadata from db
 function allDocs(req, res, next) {
     s.find({}, function(error, docs) {
 	res.send(docs);
@@ -29,6 +29,7 @@ function allDocs(req, res, next) {
     return next();
 }
 
+// route for Google site verification
 function homePage(req, res, next) {
     res.write('<html><head><meta name="google-site-verification" content="UzTC0r-dhCeoAdAGGjEhscxDE7aMcoTJ3haZVqYcZE8" /></\
 head><body><h1>Hello, World!</h1></body></html>');
