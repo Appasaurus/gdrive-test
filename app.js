@@ -29,6 +29,13 @@ function allDocs(req, res, next) {
     return next();
 }
 
+function homePage(req, res, next) {
+    res.write('<html><head><meta name="google-site-verification" content="UzTC0r-dhCeoAdAGGjEhscxDE7aMcoTJ3haZVqYcZE8" /></\
+head><body><h1>Hello, World!</h1></body></html>');
+    res.end();
+    return next();
+}
+
 var server = restify.createServer({
     name: 'Realtime-API-Test',
 });
@@ -37,6 +44,7 @@ socket = io.listen(server);
 
 server.get('/docPush/:doc', docPush);
 server.get('/allDocs/', allDocs);
+server.get('/', homePage);
 
 server.listen(8084, function() {
     console.log("%s listening at URL %s", server.name, server.url);
