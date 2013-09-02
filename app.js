@@ -1,9 +1,31 @@
 var restify = require('restify'),
-s = require('save'),
+s = require('save')('element'),
 io = require('socket.io');
 
+// Insert into DB and push update to active clients
 function docPush(req, res, next) {
-    res.send('Hello there, ' + req.params.name + '!');
+    res.send('Hello there, ' + req.params.doc + '!');
+    
+    if (req.params.doc === undefined) {
+	return next(new restify.InvalidArgumentError('Doc argument must be supplied'))
+    }
+    
+    // create new doc element in db
+    s.create({ doc: req.params.doc }, function (error, item) {
+	// Handle error in creating new doc item
+	if (error) return next(new restify.InvalidArgumentError(JSON.stringify(error.errors)))
+	res.send(201, item)
+    });
+    
+    return next();
+}
+
+// Get list of every changed doc from db
+function allDocs(req, res, next) {
+    s.find({}, function(error, docs) {
+	res.send(docs);
+    });
+
     return next();
 }
 
@@ -13,7 +35,8 @@ var server = restify.createServer({
 
 socket = io.listen(server);
 
-server.get('/pushup/:doc', docPush);
+server.get('/docPush/:doc', docPush);
+server.get('/allDocs/', allDocs);
 
 server.listen(8084, function() {
     console.log("%s listening at URL %s", server.name, server.url);
