@@ -1,5 +1,6 @@
 var restify = require('restify'),
-    s = require('save')('element');
+    s = require('save')('element'),
+    drive = require('google-drive');
 
 var server = restify.createServer({
     name : 'realtime-api-test'
